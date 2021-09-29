@@ -1,9 +1,9 @@
-module CoinCahser (
+module CoinCahser(
     input   clk, return_coin, timer_finish, coin_insert, game_finish, // "coin_insert" is high when coin is inserted into the arcade machine 
-    input   [2:0] inserted_coin,          // "inserted_coin" tells the Denomination of the coin, 001 for 5 cents, 010 for 10 cents, 011 for 25 cents, 100 for 1 dollar, 101 for 2 dollar 
+    input   [2:0] inserted_coin,          // "inserted_coin" tells the Denomination of the coin, 0001 for 5 cents, 010 for 10 cents, 011 for 25 cents, 100 for 1 dollar, 101 for 2 dollar 
     output  timer_en, coin_reject, eat_coins, reset_timer, spit_coin, wait_ready, game_start    // output flags
 );
-    state [11:0] = 12'b0;
+    logic [11:0] state = 12'b0;
     parameter power_on          = 12'b0;            // the start-up/fefault state
     parameter wait_game_start   = 12'b1;            // where FSM wait for coin to be inserted, theoretically the most common state the FSM stay at
     parameter check_coin        = 12'b10;           // check if the inseted coin is the desired
@@ -18,8 +18,9 @@ module CoinCahser (
 
     logic [3:0] coin_counter = 4'd0;    // typical arcade machine accepts no more than 8 coins, default setting: accept 2 coins to start 
 
-    parameter desired_coin_type = 3'b100;   // default setting: the machine only accept 1 dollar coin
-    parameter desired_coin_num  = 4'd3;     // default setting: the machine requires 3 x 1 dollar coin to start
+    parameter desired_coin_type = 3'b100;
+    parameter desired_coin_num  = 4'd3;
+
     // state transition 
     always_ff @(posedge clk) begin 
         case(state)
@@ -33,12 +34,15 @@ module CoinCahser (
                     state <= wait_game_start;
             end
             check_coin: begin
-                if(inserted_coin == desired_coin_type) 
+                if(inserted_coin == desired_coin_type) // default setting: the machine only accept 1 dollar coin
                     state <= check_coin_num;
                 else
                     state <= reject_coin;
             end
-            spit_all_coin:  state <= wait_game_start;
+            spit_all_coin: begin
+                state <= wait_game_start;
+                coin_counter <= 4'd0;   // reset coin counter
+            end 
             check_coin_num: begin
                 if((coin_counter + 1'b1) == desired_coin_num)   // since non-blocking assignment, here need to compare "coin_counter + 1"
                     state <= start_game;
@@ -48,12 +52,18 @@ module CoinCahser (
                     state <= incr_coin_count;
             end
             reject_coin:    state <= wait_game_start;
-            start_game:     state <= wait_game_fin;
+            start_game: begin
+                state <= wait_game_fin;
+                coin_counter <= 4'd0;   // reset coin counter
+            end     
             //check_fir_coin:
             wait_game_fin:  state <= game_finish ? wait_game_start : wait_game_fin;
             start_timer:    state <= incr_coin_count;
-            incr_coin_count: state <= wait_game_start;
-            default:
+            incr_coin_count: begin 
+                state <= wait_game_start;
+                coin_counter <= coin_counter + 4'b1;
+            end 
+            default: state <= wait_game_start;
         endcase
     end
 
@@ -64,7 +74,7 @@ module CoinCahser (
     assign reset_timer  = state[5] || state[2];
     assign spit_coin    = state[2];
     assign wait_ready   = state[0]; // tell the insert coin module to start detect coins 
-    assign game_finish  = state[5]
+    assign game_start   = state[5];
 
 endmodule
 
