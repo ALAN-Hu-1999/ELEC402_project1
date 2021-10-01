@@ -1,3 +1,7 @@
+Yuqian (Alan) Hu
+
+64133713 
+
 ELEC402 project 1
 
 A coin collector/Casher for old school arcade machine. 
