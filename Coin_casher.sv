@@ -69,7 +69,7 @@ module CoinCahser(
 
     // FSM outputs
     assign timer_en     = state[8];
-    assign coin_reject  = state[4];
+    assign coin_reject  = state[4] || state[5];
     assign eat_coins    = state[5];
     assign reset_timer  = state[5] || state[2];
     assign spit_coin    = state[2];
@@ -81,7 +81,7 @@ endmodule
 // module that detect coin and tell the main FSM coin type + flag
 // all flags is sync with the main FSM
 // module insertcoin (
-//     input clk, en, 
+//     input clk, en, coin_reject, eat_coins,
 //     output coin_insert, return_coin, 
 //     output [2:0] coin_type
 // );
@@ -96,6 +96,16 @@ endmodule
 // ) (
 //     input clk, en, rst,
 //     output timer_fin
+// );
+    
+// endmodule
+
+// the game module that start the game when prompt by the coin casher FSM
+// also tell the FSM whenn the game is finished
+// all flags is sync with the main FSM
+// module game (
+//     input clk, start,
+//     output finish
 // );
     
 // endmodule

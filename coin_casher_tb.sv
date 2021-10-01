@@ -85,7 +85,7 @@ module coin_casher_tb;
         // expected state trans:
         // wait_game_start(12'b1) --> check_coin(12'b10) --> check_coin_num(12'b1000) --> 
         // start_game(12'b100000) --> wait_game_fin(12'b10000000) <--> loop back
-        // output flag: "game_start", "eat_coins", "reset_timer" should be high @ "start_game(12'b100000)"
+        // output flag: "game_start", "eat_coins", "reset_timer", and "coin_reject" should be high @ "start_game(12'b100000)"
         // coin counter should be 0 @ "start_game(12'b100000)" 
         // the state should loop in wait_game_fin(12'b10000000) until "game_finish" is high
         return_coin_tb  = 1'b0;
